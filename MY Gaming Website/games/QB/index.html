@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quiz Battle</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+    }
+    .quiz-container {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.25);
+      animation: fadeIn 0.5s ease-in-out;
+    }
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-10px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    h2 {
+      margin-top: 0;
+      color: #333;
+    }
+    .question {
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+    .options button {
+      display: block;
+      width: 100%;
+      margin: 0.5rem 0;
+      padding: 0.75rem;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background: #f1f1f1;
+      transition: all 0.3s;
+      cursor: pointer;
+    }
+    .options button:hover {
+      background: #ddd;
+    }
+    .options button.correct {
+      background-color: #c8e6c9;
+    }
+    .options button.wrong {
+      background-color: #ffcdd2;
+    }
+    .score-timer {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-weight: bold;
+    }
+    #nextBtn {
+      margin-top: 1rem;
+      padding: 0.75rem;
+      background: #667eea;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      display: none;
+    }
+    #nextBtn:hover {
+      background: #5a67d8;
+    }
+    #result {
+      font-size: 1.2rem;
+      text-align: center;
+      margin-top: 1rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h2>🔥 Quiz Battle</h2>
+    <div class="score-timer">
+      <div>Score: <span id="score">0</span></div>
+      <div>Time: <span id="timer">15</span>s</div>
+    </div>
+    <div class="question" id="question">Loading question...</div>
+    <div class="options" id="options"></div>
+    <button id="nextBtn">Next Question</button>
+    <div id="result"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "What is the capital of India?",
+        options: ["Mumbai", "New Delhi", "Kolkata", "Chennai"],
+        answer: "New Delhi"
+      },
+      {
+        q: "Which planet is known as the Red Planet?",
+        options: ["Earth", "Mars", "Jupiter", "Saturn"],
+        answer: "Mars"
+      },
+      {
+        q: "HTML stands for?",
+        options: ["HyperText Makeup Language", "HyperText Markup Language", "HighText Mark Language", "None"],
+        answer: "HyperText Markup Language"
+      },
+      {
+        q: "Who wrote 'Hamlet'?",
+        options: ["Shakespeare", "Charles Dickens", "Leo Tolstoy", "Mark Twain"],
+        answer: "Shakespeare"
+      },
+      {
+        q: "Largest mammal?",
+        options: ["Elephant", "Blue Whale", "Giraffe", "Rhino"],
+        answer: "Blue Whale"
+      },
+      // Add 145+ more for full version
+    ];
+
+    let score = 0;
+    let current = 0;
+    let timer;
+    let timeLeft = 15;
+
+    const questionEl = document.getElementById('question');
+    const optionsEl = document.getElementById('options');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const nextBtn = document.getElementById('nextBtn');
+    const resultEl = document.getElementById('result');
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+      return array;
+    }
+
+    function loadQuestion() {
+      if (current >= questions.length) {
+        showResult();
+        return;
+      }
+
+      timeLeft = 15;
+      timerEl.textContent = timeLeft;
+      clearInterval(timer);
+      timer = setInterval(updateTimer, 1000);
+
+      const q = questions[current];
+      questionEl.textContent = `Q${current + 1}: ${q.q}`;
+      optionsEl.innerHTML = "";
+      resultEl.textContent = "";
+
+      const shuffledOptions = shuffle([...q.options]);
+      shuffledOptions.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(btn, q.answer);
+        optionsEl.appendChild(btn);
+      });
+    }
+
+    function updateTimer() {
+      timeLeft--;
+      timerEl.textContent = timeLeft;
+      if (timeLeft === 0) {
+        clearInterval(timer);
+        showAnswer(null);
+      }
+    }
+
+    function selectOption(button, correct) {
+      clearInterval(timer);
+      const buttons = optionsEl.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === correct) {
+          btn.classList.add('correct');
+        } else if (btn === button) {
+          btn.classList.add('wrong');
+        }
+      });
+
+      if (button.textContent === correct) {
+        score += 10;
+        scoreEl.textContent = score;
+        resultEl.textContent = "✅ Correct!";
+      } else {
+        resultEl.textContent = "❌ Wrong!";
+      }
+
+      nextBtn.style.display = "block";
+    }
+
+    function showAnswer() {
+      const q = questions[current];
+      const buttons = optionsEl.querySelectorAll('button');
+      buttons.forEach(btn => {
+        btn.disabled = true;
+        if (btn.textContent === q.answer) {
+          btn.classList.add('correct');
+        }
+      });
+      resultEl.textContent = "⏰ Time's up!";
+      nextBtn.style.display = "block";
+    }
+
+    function showResult() {
+      questionEl.textContent = "🎉 Quiz Finished!";
+      optionsEl.innerHTML = "";
+      nextBtn.style.display = "none";
+      resultEl.textContent = `Your final score: ${score}`;
+    }
+
+    nextBtn.onclick = () => {
+      current++;
+      nextBtn.style.display = "none";
+      loadQuestion();
+    };
+
+    // Initial load
+    shuffle(questions); // randomize questions
+    loadQuestion();
+  </script>
+</body>
+</html>

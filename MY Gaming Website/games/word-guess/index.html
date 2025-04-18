@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Word Guess Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: "Segoe UI", sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #f6d365, #fda085);
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      flex-direction: column;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #fff;
+      text-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+      margin-bottom: 20px;
+    }
+
+    .word-display {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .letter-box {
+      width: 40px;
+      height: 50px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #333;
+    }
+
+    .input-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    input[type="text"] {
+      width: 50px;
+      font-size: 1.5rem;
+      padding: 5px;
+      text-align: center;
+      margin-bottom: 10px;
+      border: 2px solid #fff;
+      border-radius: 5px;
+      outline: none;
+    }
+
+    button {
+      padding: 8px 20px;
+      font-size: 1rem;
+      border: none;
+      border-radius: 8px;
+      background-color: #ff6f61;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background-color: #e85a4f;
+    }
+
+    .status {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #fff;
+    }
+
+    .wrong-letters {
+      margin-top: 10px;
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .reset-btn {
+      margin-top: 20px;
+      background-color: #3ac569;
+    }
+
+    @media (max-width: 400px) {
+      .letter-box {
+        width: 30px;
+        height: 40px;
+        font-size: 1.4rem;
+      }
+
+      input[type="text"] {
+        width: 40px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Word Guess</h1>
+  <div class="word-display" id="wordDisplay"></div>
+
+  <div class="input-section">
+    <input type="text" id="letterInput" maxlength="1" />
+    <button onclick="guessLetter()">Guess</button>
+  </div>
+
+  <div class="status" id="status">You have 6 attempts left.</div>
+  <div class="wrong-letters" id="wrongLetters">Wrong letters: </div>
+
+  <button class="reset-btn" onclick="startGame()">Reset Game</button>
+
+  <script>
+    const wordList = ["javascript", "hangman", "beautiful", "pokemon", "arcade", "pikachu", "element", "gravity"];
+    let selectedWord = "";
+    let displayedWord = [];
+    let attempts = 20;
+    let guessedLetters = [];
+    let wrongGuesses = [];
+
+    const wordDisplay = document.getElementById("wordDisplay");
+    const letterInput = document.getElementById("letterInput");
+    const statusText = document.getElementById("status");
+    const wrongLetters = document.getElementById("wrongLetters");
+
+    function startGame() {
+      selectedWord = wordList[Math.floor(Math.random() * wordList.length)].toLowerCase();
+      displayedWord = Array(selectedWord.length).fill("");
+      attempts = 20;
+      guessedLetters = [];
+      wrongGuesses = [];
+      updateDisplay();
+      statusText.textContent = `You have ${attempts} attempts left.`;
+      wrongLetters.textContent = "Wrong letters: ";
+      letterInput.value = "";
+      letterInput.focus();
+    }
+
+    function updateDisplay() {
+      wordDisplay.innerHTML = "";
+      displayedWord.forEach((letter, index) => {
+        const div = document.createElement("div");
+        div.className = "letter-box";
+        div.textContent = letter ? letter.toUpperCase() : "";
+        wordDisplay.appendChild(div);
+      });
+    }
+
+    function guessLetter() {
+      const letter = letterInput.value.toLowerCase();
+      letterInput.value = "";
+      letterInput.focus();
+
+      if (!letter.match(/[a-z]/i) || letter.length !== 1 || guessedLetters.includes(letter)) {
+        return;
+      }
+
+      guessedLetters.push(letter);
+
+      if (selectedWord.includes(letter)) {
+        selectedWord.split("").forEach((char, index) => {
+          if (char === letter) {
+            displayedWord[index] = letter;
+          }
+        });
+      } else {
+        attempts--;
+        wrongGuesses.push(letter.toUpperCase());
+      }
+
+      updateDisplay();
+      updateStatus();
+    }
+
+    function updateStatus() {
+      if (!displayedWord.includes("")) {
+        statusText.textContent = "🎉 You guessed the word!";
+      } else if (attempts === 0) {
+        statusText.textContent = `💀 Game Over! Word was "${selectedWord.toUpperCase()}"`;
+        for (let i = 0; i < selectedWord.length; i++) {
+          displayedWord[i] = selectedWord[i];
+        }
+        updateDisplay();
+      } else {
+        statusText.textContent = `You have ${attempts} attempts left.`;
+      }
+
+      wrongLetters.textContent = `Wrong letters: ${wrongGuesses.join(", ")}`;
+    }
+
+    // Auto start game
+    startGame();
+  </script>
+
+</body>
+</html>

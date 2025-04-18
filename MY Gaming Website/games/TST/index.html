@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Typing Speed Test</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #4facfe, #00f2fe);
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+    .container {
+      background: rgba(0, 0, 0, 0.3);
+      padding: 30px;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+      width: 90%;
+      max-width: 600px;
+      text-align: center;
+    }
+    h1 {
+      margin-bottom: 20px;
+      font-size: 32px;
+      color: #fff;
+    }
+    #wordDisplay {
+      font-size: 24px;
+      margin-bottom: 20px;
+      padding: 15px;
+      background: #fff;
+      color: #333;
+      border-radius: 10px;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.2);
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      outline: none;
+      margin-bottom: 20px;
+    }
+    .stats {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+    button {
+      background: #fff;
+      color: #333;
+      border: none;
+      padding: 12px 20px;
+      font-size: 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+    button:hover {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Typing Speed Test</h1>
+    <div id="wordDisplay">Click "Start Test" to begin</div>
+    <input type="text" id="inputBox" placeholder="Type the word here..." disabled />
+    <button onclick="startTest()">Start Test</button>
+    <div class="stats">
+      <p>Time: <span id="time">0</span> sec</p>
+      <p>Words Typed: <span id="score">0</span></p>
+      <p>WPM: <span id="wpm">0</span></p>
+    </div>
+  </div>
+
+  <script>
+    const words = [
+      "javascript", "function", "variable", "object", "array", "html", "css",
+      "document", "window", "element", "random", "string", "number", "boolean",
+      "keyboard", "event", "listener", "type", "speed", "challenge", "developer",
+      "frontend", "backend", "debug", "compile", "execute", "syntax", "browser", "bulbasaur", "charmander",
+      "squirtle", "pikachu", "jigglypuff", "meowth", "eevee", "snorlax", "mewtwo", "charizard",
+      "gengar", "ditto", "onix", "psyduck", "pidgey", "zubat", "magikarp", "golem",
+      "alakazam", "raichu", "mew", "snorlax", "lapras", "dragonite", "gardevoir", "lucario",
+      "garchomp", "greninja", "scizor", "tyranitar", "sceptile", "blaziken", "swampert", "gardevoir",
+      "metagross", "salamence", "rayquaza", "dialga", "palkia", "giratina", "reshiram", "zekrom",
+      "kyurem", "xerneas", "yveltal", "zygarde", "solgaleo", "lunala", "necrozma", "mimikyu"
+    ];
+
+    let currentWord = "";
+    let timeLeft = 60;
+    let score = 0;
+    let timer;
+    let isPlaying = false;
+
+    const wordDisplay = document.getElementById("wordDisplay");
+    const inputBox = document.getElementById("inputBox");
+    const timeEl = document.getElementById("time");
+    const scoreEl = document.getElementById("score");
+    const wpmEl = document.getElementById("wpm");
+
+    function getRandomWord() {
+      return words[Math.floor(Math.random() * words.length)];
+    }
+
+    function showNewWord() {
+      currentWord = getRandomWord();
+      wordDisplay.textContent = currentWord;
+    }
+
+    function startTest() {
+      isPlaying = true;
+      timeLeft = 60;
+      score = 0;
+      inputBox.disabled = false;
+      inputBox.value = "";
+      inputBox.focus();
+      showNewWord();
+      updateStats();
+      clearInterval(timer);
+      timer = setInterval(countDown, 1000);
+    }
+
+    function countDown() {
+      if (timeLeft > 0) {
+        timeLeft--;
+        updateStats();
+      } else {
+        endTest();
+      }
+    }
+
+    function endTest() {
+      clearInterval(timer);
+      isPlaying = false;
+      wordDisplay.textContent = "Test Over! Click 'Start Test' to try again.";
+      inputBox.disabled = true;
+    }
+
+    function updateStats() {
+      timeEl.textContent = 60 - timeLeft;
+      scoreEl.textContent = score;
+      const minutes = (60 - timeLeft) / 60;
+      wpmEl.textContent = minutes > 0 ? Math.round(score / minutes) : 0;
+    }
+
+    inputBox.addEventListener("input", () => {
+      if (inputBox.value.trim() === currentWord && isPlaying) {
+        score++;
+        inputBox.value = "";
+        showNewWord();
+        updateStats();
+      }
+    });
+  </script>
+</body>
+</html>

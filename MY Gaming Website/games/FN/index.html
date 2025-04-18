@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ball Ninja</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      background-color: #fafafa;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    canvas {
+      border: 5px solid #2c3e50;
+      background-color: #f0f0f0;
+    }
+
+    /* Responsive canvas */
+    @media (max-width: 768px) {
+      canvas {
+        width: 80vw;
+        height: 60vh;
+      }
+    }
+
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="600"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const context = canvas.getContext('2d');
+
+    // Game variables
+    let score = 0;
+    let fruits = [];
+    let isGameOver = false;
+    let gameInterval;
+    const fruitSpeed = 4;
+    const fruitRadius = 30;
+    const maxFruits = 5;
+
+    // Fruit class
+    class Fruit {
+      constructor() {
+        this.x = Math.random() * (canvas.width - 50) + 50;
+        this.y = canvas.height + 50;
+        this.radius = fruitRadius;
+        this.speed = fruitSpeed + Math.random() * 2;
+        this.angle = Math.random() * Math.PI * 2;
+        this.color = `hsl(${Math.random() * 360}, 100%, 60%)`; // Random fruit color
+      }
+
+      draw() {
+        context.beginPath();
+        context.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        context.fillStyle = this.color;
+        context.fill();
+      }
+
+      update() {
+        this.y -= this.speed;
+        this.draw();
+      }
+
+      isOutOfBounds() {
+        return this.y + this.radius < 0;
+      }
+
+      isHit(x, y) {
+        const dx = x - this.x;
+        const dy = y - this.y;
+        return Math.sqrt(dx * dx + dy * dy) < this.radius;
+      }
+    }
+
+    // Spawn new fruit
+    function spawnFruit() {
+      if (fruits.length < maxFruits) {
+        fruits.push(new Fruit());
+      }
+    }
+
+    // Draw score
+    function drawScore() {
+      context.font = '20px Arial';
+      context.fillStyle = '#333';
+      context.fillText(`Score: ${score}`, 10, 30);
+    }
+
+    // Handle game over
+    function gameOver() {
+      context.font = '50px Arial';
+      context.fillStyle = '#e74c3c';
+      context.fillText('GAME OVER', canvas.width / 3, canvas.height / 2);
+      isGameOver = true;
+      clearInterval(gameInterval);
+    }
+
+    // Handle mouse/touch events
+    let isTouching = false;
+    canvas.addEventListener('mousedown', (event) => {
+      if (isGameOver) return;
+      const { offsetX, offsetY } = event;
+      isTouching = true;
+      checkHit(offsetX, offsetY);
+    });
+
+    canvas.addEventListener('mouseup', () => {
+      isTouching = false;
+    });
+
+    canvas.addEventListener('mousemove', (event) => {
+      if (isTouching) {
+        const { offsetX, offsetY } = event;
+        checkHit(offsetX, offsetY);
+      }
+    });
+
+    // Check if fruit is hit
+    function checkHit(x, y) {
+      fruits.forEach((fruit, index) => {
+        if (fruit.isHit(x, y)) {
+          score++;
+          fruits.splice(index, 1);
+        }
+      });
+    }
+
+    // Main game loop
+    function gameLoop() {
+      context.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (isGameOver) return;
+
+      // Draw fruits
+      fruits.forEach((fruit, index) => {
+        fruit.update();
+
+        if (fruit.isOutOfBounds()) {
+          fruits.splice(index, 1);
+        }
+      });
+
+      // Spawn new fruits
+      spawnFruit();
+
+      // Draw score
+      drawScore();
+    }
+
+    // Start the game
+    function startGame() {
+      score = 0;
+      fruits = [];
+      isGameOver = false;
+      gameInterval = setInterval(gameLoop, 1000 / 60);
+    }
+
+    // Start the game on page load
+    startGame();
+  </script>
+</body>
+</html>

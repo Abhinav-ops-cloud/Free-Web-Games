@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Maze Runner</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: linear-gradient(135deg, #74ebd5, #ACB6E5);
+      font-family: Arial, sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    h1 {
+      color: #333;
+      margin: 20px;
+    }
+    #maze {
+      display: grid;
+      margin-bottom: 20px;
+    }
+    .cell {
+      width: 30px;
+      height: 30px;
+      box-sizing: border-box;
+      border: 1px solid #ccc;
+    }
+    .wall {
+      background-color: #333;
+    }
+    .path {
+      background-color: #fff;
+    }
+    .player {
+      background-color: #4CAF50;
+    }
+    .exit {
+      background-color: #e91e63;
+    }
+    .message {
+      font-weight: bold;
+      font-size: 18px;
+      color: #222;
+    }
+    .controls {
+      display: grid;
+      grid-template-areas:
+        ". up ."
+        "left . right"
+        ". down .";
+      gap: 10px;
+      margin: 20px;
+    }
+    .btn {
+      background-color: #333;
+      color: white;
+      font-size: 20px;
+      padding: 15px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .btn:active {
+      background-color: #555;
+    }
+    .up    { grid-area: up; }
+    .down  { grid-area: down; }
+    .left  { grid-area: left; }
+    .right { grid-area: right; }
+
+    @media (hover: none) {
+      .controls {
+        display: grid;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Maze Runner</h1>
+  <div id="maze"></div>
+  <div class="message" id="message">Use arrow keys or tap buttons below!</div>
+
+  <!-- Mobile Controls -->
+  <div class="controls">
+    <button class="btn up" onclick="movePlayer(0, -1)">⬆️</button>
+    <button class="btn left" onclick="movePlayer(-1, 0)">⬅️</button>
+    <button class="btn right" onclick="movePlayer(1, 0)">➡️</button>
+    <button class="btn down" onclick="movePlayer(0, 1)">⬇️</button>
+  </div>
+
+  <script>
+    const rows = 15;
+    const cols = 15;
+    const maze = document.getElementById('maze');
+    const message = document.getElementById('message');
+
+    let player = { x: 0, y: 0 };
+    const exit = { x: cols - 1, y: rows - 1 };
+    let mazeData = [];
+
+    maze.style.gridTemplateColumns = `repeat(${cols}, 30px)`;
+
+    function createEmptyMaze() {
+      mazeData = [];
+      for (let y = 0; y < rows; y++) {
+        const row = [];
+        for (let x = 0; x < cols; x++) {
+          row.push({ wall: true });
+        }
+        mazeData.push(row);
+      }
+    }
+
+    function generateMaze(x, y) {
+      const dir = [
+        [0, -1], [1, 0], [0, 1], [-1, 0]
+      ].sort(() => Math.random() - 0.5);
+
+      mazeData[y][x].wall = false;
+
+      for (let [dx, dy] of dir) {
+        const nx = x + dx * 2;
+        const ny = y + dy * 2;
+
+        if (ny >= 0 && ny < rows && nx >= 0 && nx < cols && mazeData[ny][nx].wall) {
+          mazeData[y + dy][x + dx].wall = false;
+          generateMaze(nx, ny);
+        }
+      }
+    }
+
+    function renderMaze() {
+      maze.innerHTML = '';
+      for (let y = 0; y < rows; y++) {
+        for (let x = 0; x < cols; x++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if (mazeData[y][x].wall) {
+            cell.classList.add('wall');
+          } else {
+            cell.classList.add('path');
+          }
+
+          if (x === player.x && y === player.y) {
+            cell.classList.add('player');
+          }
+          if (x === exit.x && y === exit.y) {
+            cell.classList.add('exit');
+          }
+
+          maze.appendChild(cell);
+        }
+      }
+    }
+
+    function movePlayer(dx, dy) {
+      const nx = player.x + dx;
+      const ny = player.y + dy;
+
+      if (
+        nx >= 0 &&
+        ny >= 0 &&
+        nx < cols &&
+        ny < rows &&
+        !mazeData[ny][nx].wall
+      ) {
+        player.x = nx;
+        player.y = ny;
+        renderMaze();
+
+        if (player.x === exit.x && player.y === exit.y) {
+          message.textContent = "🎉 You escaped the maze!";
+        }
+      }
+    }
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowUp': movePlayer(0, -1); break;
+        case 'ArrowDown': movePlayer(0, 1); break;
+        case 'ArrowLeft': movePlayer(-1, 0); break;
+        case 'ArrowRight': movePlayer(1, 0); break;
+      }
+    });
+
+    createEmptyMaze();
+    generateMaze(0, 0);
+    renderMaze();
+  </script>
+</body>
+</html>

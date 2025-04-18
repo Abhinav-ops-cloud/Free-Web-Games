@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Guess the Pokémon!</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to right, #ff9a9e, #fad0c4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    h1 {
+      color: #fff;
+      margin-bottom: 10px;
+      font-size: 2.5em;
+      text-shadow: 2px 2px 4px #00000066;
+    }
+
+    #game {
+      background: #fff;
+      border-radius: 15px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+      padding: 20px;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+    }
+
+    #pokemon-img {
+      width: 200px;
+      height: 200px;
+      object-fit: contain;
+      filter: brightness(0);
+      transition: filter 0.5s ease;
+    }
+
+    .choices {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 20px;
+    }
+
+    .choice {
+      background-color: #ffeb3b;
+      color: #000;
+      margin: 10px;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      border: 2px solid #fbc02d;
+      transition: transform 0.2s;
+    }
+
+    .choice:hover {
+      transform: scale(1.05);
+    }
+
+    #feedback {
+      margin-top: 15px;
+      font-weight: bold;
+      font-size: 1.2em;
+    }
+
+    #score {
+      margin-top: 10px;
+      font-size: 1em;
+      color: #444;
+    }
+
+    @media (max-width: 480px) {
+      #pokemon-img {
+        width: 150px;
+        height: 150px;
+      }
+
+      .choice {
+        width: 100%;
+        margin: 5px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <h1>Who's That Pokémon?</h1>
+  <div id="game">
+    <img id="pokemon-img" src="" alt="Pokemon" />
+    <div class="choices" id="choices"></div>
+    <div id="feedback"></div>
+    <div id="score">Score: 0</div>
+  </div>
+
+  <script>
+    const pokemons = [
+      { name: "Bulbasaur", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png" },
+      { name: "Ivysaur", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/2.png" },
+      { name: "Venusaur", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/3.png" },
+      { name: "Charmander", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png" },
+      { name: "Charmeleon", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/5.png" },
+      { name: "Charizard", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png" },
+      { name: "Squirtle", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png" },
+      { name: "Wartortle", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/8.png" },
+      { name: "Blastoise", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png" },
+      { name: "Caterpie", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/10.png" },
+      { name: "Pikachu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png" },
+      { name: "Raichu", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/26.png" },
+      { name: "Jigglypuff", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/39.png" },
+      { name: "Meowth", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/52.png" },
+      { name: "Psyduck", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/54.png" },
+      { name: "Machop", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/66.png" },
+      { name: "Geodude", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/74.png" },
+      { name: "Magikarp", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/129.png" },
+      { name: "Eevee", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png" },
+      { name: "Snorlax", img: "https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png" }
+    ];
+
+    let score = 0;
+    let currentPokemon = null;
+
+    function getRandomPokemon() {
+      return pokemons[Math.floor(Math.random() * pokemons.length)];
+    }
+
+    function shuffle(array) {
+      for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+      }
+    }
+
+    function loadQuestion() {
+      currentPokemon = getRandomPokemon();
+      document.getElementById("pokemon-img").src = currentPokemon.img;
+      document.getElementById("pokemon-img").style.filter = "brightness(0)";
+
+      const choicesContainer = document.getElementById("choices");
+      choicesContainer.innerHTML = "";
+
+      let options = [currentPokemon];
+      while (options.length < 4) {
+        const random = getRandomPokemon();
+        if (!options.find(opt => opt.name === random.name)) {
+          options.push(random);
+        }
+      }
+
+      shuffle(options);
+
+      options.forEach(opt => {
+        const btn = document.createElement("div");
+        btn.classList.add("choice");
+        btn.textContent = opt.name;
+        btn.onclick = () => checkAnswer(opt.name);
+        choicesContainer.appendChild(btn);
+      });
+    }
+
+    function checkAnswer(selected) {
+      const feedback = document.getElementById("feedback");
+      if (selected === currentPokemon.name) {
+        feedback.textContent = "🎉 Correct!";
+        document.getElementById("pokemon-img").style.filter = "none";
+        score++;
+      } else {
+        feedback.textContent = `❌ Wrong! It was ${currentPokemon.name}`;
+        document.getElementById("pokemon-img").style.filter = "none";
+      }
+      document.getElementById("score").textContent = `Score: ${score}`;
+      setTimeout(() => {
+        feedback.textContent = "";
+        loadQuestion();
+      }, 1500);
+    }
+
+    loadQuestion();
+  </script>
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Speed Math</title>
+  <style>
+    body {
+      font-family: 'Arial', sans-serif;
+      background-color: #f4f4f4;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      flex-direction: column;
+    }
+
+    #gameContainer {
+      text-align: center;
+      background-color: #fff;
+      border-radius: 10px;
+      padding: 30px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      width: 300px;
+      box-sizing: border-box;
+    }
+
+    h1 {
+      font-size: 2rem;
+      color: #333;
+    }
+
+    #question {
+      font-size: 1.5rem;
+      margin: 20px 0;
+    }
+
+    input {
+      font-size: 1.2rem;
+      padding: 10px;
+      width: 60%;
+      margin: 10px 0;
+      border-radius: 5px;
+      border: 2px solid #ccc;
+      outline: none;
+    }
+
+    input:focus {
+      border-color: #4CAF50;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    #score {
+      font-size: 1.2rem;
+      margin: 20px 0;
+      color: #333;
+    }
+
+    #timer {
+      font-size: 1.5rem;
+      color: #f44336;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 600px) {
+      #gameContainer {
+        width: 80%;
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameContainer">
+    <h1>Speed Math</h1>
+    <p id="score">Score: 0</p>
+    <p id="timer">Time: 30</p>
+    <p id="question">Loading...</p>
+    <input type="number" id="answer" placeholder="Your Answer" autofocus>
+    <button id="submitAnswer">Submit</button>
+    <p id="gameOverMessage" class="hidden">Game Over! Your score is <span id="finalScore"></span></p>
+  </div>
+
+  <script>
+    // Game variables
+    let score = 0;
+    let timeRemaining = 30;
+    let currentQuestion = null;
+    let gameInterval = null;
+    let timerInterval = null;
+
+    // Start a new game
+    function startGame() {
+      score = 0;
+      timeRemaining = 30;
+      updateScore();
+      showNewQuestion();
+      startTimer();
+      document.getElementById('gameOverMessage').classList.add('hidden');
+      document.getElementById('submitAnswer').disabled = false;
+      gameInterval = setInterval(showNewQuestion, 5000); // Show a new question every 5 seconds
+    }
+
+    // Generate a random math question
+    function generateQuestion() {
+      const num1 = Math.floor(Math.random() * 20) + 1; // Random number between 1 and 20
+      const num2 = Math.floor(Math.random() * 20) + 1; // Random number between 1 and 20
+      const operator = Math.random() > 0.5 ? '+' : '-'; // Random operator: + or -
+
+      let correctAnswer = 0;
+      if (operator === '+') {
+        correctAnswer = num1 + num2;
+      } else {
+        correctAnswer = num1 - num2;
+      }
+
+      currentQuestion = {
+        questionText: `${num1} ${operator} ${num2}`,
+        answer: correctAnswer
+      };
+    }
+
+    // Display a new question
+    function showNewQuestion() {
+      generateQuestion();
+      document.getElementById('question').textContent = currentQuestion.questionText;
+      document.getElementById('answer').value = '';
+      document.getElementById('answer').focus();
+    }
+
+    // Handle answer submission
+    function submitAnswer() {
+      const userAnswer = parseInt(document.getElementById('answer').value);
+
+      if (userAnswer === currentQuestion.answer) {
+        score++;
+        updateScore();
+      }
+
+      if (timeRemaining > 0) {
+        showNewQuestion();
+      }
+    }
+
+    // Update the score display
+    function updateScore() {
+      document.getElementById('score').textContent = `Score: ${score}`;
+    }
+
+    // Start the timer
+    function startTimer() {
+      timerInterval = setInterval(() => {
+        timeRemaining--;
+        document.getElementById('timer').textContent = `Time: ${timeRemaining}`;
+
+        if (timeRemaining <= 0) {
+          clearInterval(gameInterval);
+          clearInterval(timerInterval);
+          endGame();
+        }
+      }, 1000);
+    }
+
+    // End the game
+    function endGame() {
+      document.getElementById('submitAnswer').disabled = true;
+      document.getElementById('gameOverMessage').classList.remove('hidden');
+      document.getElementById('finalScore').textContent = score;
+    }
+
+    // Event listener for submitting an answer
+    document.getElementById('submitAnswer').addEventListener('click', submitAnswer);
+
+    // Start the game when the page loads
+    startGame();
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Mini Golf Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(to bottom right, #4facfe, #00f2fe);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+    }
+
+    h1 {
+      color: white;
+      margin: 20px;
+    }
+
+    canvas {
+      background: #f1f8e9;
+      border: 5px solid #1b5e20;
+      border-radius: 10px;
+      touch-action: none;
+    }
+
+    #info {
+      margin-top: 15px;
+      color: #fff;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h1>🏌️‍♂️ Mini Golf Challenge</h1>
+  <canvas id="gameCanvas" width="400" height="600"></canvas>
+  <div id="info">Pull back and release the ball. You get 3 tries!</div>
+
+  <script>
+    const canvas = document.getElementById("gameCanvas");
+    const ctx = canvas.getContext("2d");
+
+    let ball = { x: 200, y: 550, radius: 12, vx: 0, vy: 0 };
+    const hole = { x: 200, y: 70, radius: 18 };
+    let tries = 3;
+    let isDragging = false;
+    let dragStart = { x: 0, y: 0 };
+    let shotTaken = false;
+    const friction = 0.98;
+
+    function drawBall() {
+      ctx.beginPath();
+      ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#000"; // visible black ball
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawHole() {
+      ctx.beginPath();
+      ctx.arc(hole.x, hole.y, hole.radius, 0, Math.PI * 2);
+      ctx.fillStyle = "#444";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawFlag() {
+      ctx.beginPath();
+      ctx.moveTo(hole.x + 20, hole.y);
+      ctx.lineTo(hole.x + 20, hole.y - 40);
+      ctx.strokeStyle = "#000";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+      ctx.closePath();
+
+      ctx.beginPath();
+      ctx.moveTo(hole.x + 20, hole.y - 40);
+      ctx.lineTo(hole.x + 50, hole.y - 30);
+      ctx.lineTo(hole.x + 20, hole.y - 20);
+      ctx.fillStyle = "red";
+      ctx.fill();
+      ctx.closePath();
+    }
+
+    function drawWalls() {
+      ctx.fillStyle = "#388e3c";
+      ctx.fillRect(0, 0, 10, canvas.height); // left
+      ctx.fillRect(canvas.width - 10, 0, 10, canvas.height); // right
+    }
+
+    function drawArrow() {
+      if (isDragging) {
+        ctx.beginPath();
+        ctx.moveTo(ball.x, ball.y);
+        ctx.lineTo(dragStart.x, dragStart.y);
+        ctx.strokeStyle = "red";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        ctx.closePath();
+      }
+    }
+
+    function updateBall() {
+      ball.x += ball.vx;
+      ball.y += ball.vy;
+      ball.vx *= friction;
+      ball.vy *= friction;
+
+      // wall bounce
+      if (ball.x - ball.radius <= 10 || ball.x + ball.radius >= canvas.width - 10) {
+        ball.vx = -ball.vx;
+      }
+
+      // floor/ceiling bounce
+      if (ball.y - ball.radius <= 0 || ball.y + ball.radius >= canvas.height) {
+        ball.vy = -ball.vy;
+      }
+
+      // stop tiny movement
+      if (Math.abs(ball.vx) < 0.1) ball.vx = 0;
+      if (Math.abs(ball.vy) < 0.1) ball.vy = 0;
+    }
+
+    function checkGoal() {
+      const dx = ball.x - hole.x;
+      const dy = ball.y - hole.y;
+      const dist = Math.sqrt(dx * dx + dy * dy);
+
+      if (dist < hole.radius) {
+        setTimeout(() => {
+          alert("🎉 You made it in the hole!");
+          resetGame();
+        }, 100);
+      } else if (ball.vx === 0 && ball.vy === 0 && shotTaken) {
+        tries--;
+        if (tries > 0) {
+          alert("❌ Missed! Tries left: " + tries);
+          resetBall();
+        } else {
+          alert("💀 Out of tries. Game Over.");
+          resetGame();
+        }
+      }
+    }
+
+    function resetBall() {
+
+      ball.vx = 0;
+      ball.vy = 0;
+      shotTaken = false;
+    }
+
+    function resetGame() {
+      tries = 3;
+      resetBall();
+    }
+
+    function gameLoop() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      drawWalls();
+      drawHole();
+      drawFlag();
+      drawBall();
+      drawArrow();
+
+      if (shotTaken) {
+        updateBall();
+        checkGoal();
+      }
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    // mouse
+    canvas.addEventListener("mousedown", (e) => {
+      if (!shotTaken) {
+        isDragging = true;
+        dragStart = { x: e.offsetX, y: e.offsetY };
+      }
+    });
+
+    canvas.addEventListener("mousemove", (e) => {
+      if (isDragging) {
+        dragStart = { x: e.offsetX, y: e.offsetY };
+      }
+    });
+
+    canvas.addEventListener("mouseup", () => {
+      if (isDragging) {
+        isDragging = false;
+        ball.vx = (ball.x - dragStart.x) / 8;
+        ball.vy = (ball.y - dragStart.y) / 8;
+        shotTaken = true;
+      }
+    });
+
+    // touch
+    canvas.addEventListener("touchstart", (e) => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      const x = touch.clientX - rect.left;
+      const y = touch.clientY - rect.top;
+      if (!shotTaken) {
+        isDragging = true;
+        dragStart = { x, y };
+      }
+    });
+
+    canvas.addEventListener("touchmove", (e) => {
+      const touch = e.touches[0];
+      const rect = canvas.getBoundingClientRect();
+      dragStart = {
+        x: touch.clientX - rect.left,
+        y: touch.clientY - rect.top,
+      };
+    });
+
+    canvas.addEventListener("touchend", () => {
+      if (isDragging) {
+        isDragging = false;
+        ball.vx = (ball.x - dragStart.x) / 8;
+        ball.vy = (ball.y - dragStart.y) / 8;
+        shotTaken = true;
+      }
+    });
+
+    gameLoop();
+  </script>
+</body>
+</html>

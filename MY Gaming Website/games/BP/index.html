@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Balloon Pop Game</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: linear-gradient(to top right, #ff9a9e, #fad0c4);
+      font-family: 'Segoe UI', sans-serif;
+      overflow: hidden;
+    }
+
+    .scoreboard {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 255, 255, 0.9);
+      padding: 15px 25px;
+      border-radius: 12px;
+      font-size: 20px;
+      color: #333;
+      font-weight: bold;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    }
+
+    .balloon {
+      position: absolute;
+      width: 60px;
+      height: 80px;
+      background: radial-gradient(circle at 30% 30%, #ff4e50, #f9d423);
+      border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+      cursor: pointer;
+      animation: floatUp 5s linear infinite;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
+    }
+
+    .balloon::after {
+      content: '';
+      position: absolute;
+      bottom: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 2px;
+      height: 20px;
+      background: #444;
+    }
+
+    @keyframes floatUp {
+      from {
+        transform: translateY(100vh);
+        opacity: 1;
+      }
+      to {
+        transform: translateY(-150px);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="scoreboard">🎯 Score: <span id="score">0</span></div>
+
+  <script>
+    const scoreEl = document.getElementById("score");
+    let score = 0;
+
+    function createBalloon() {
+      const balloon = document.createElement("div");
+      balloon.classList.add("balloon");
+      balloon.style.left = Math.random() * (window.innerWidth - 60) + "px";
+      balloon.style.animationDuration = (3 + Math.random() * 2) + "s";
+
+      // Add popping functionality
+      balloon.addEventListener("click", () => {
+        popBalloon(balloon);
+      });
+
+      document.body.appendChild(balloon);
+
+      // Remove balloon after animation
+      setTimeout(() => {
+        if (balloon.parentElement) balloon.remove();
+      }, 5000);
+    }
+
+    function popBalloon(balloon) {
+      score++;
+      scoreEl.textContent = score;
+      balloon.remove();
+
+      // Optional pop sound (commented since we can’t embed audio easily here)
+      // let audio = new Audio('pop.mp3');
+      // audio.play();
+    }
+
+    // Create balloons every 800ms
+    setInterval(createBalloon, 800);
+
+    // Responsive handling
+    window.addEventListener("resize", () => {
+      const balloons = document.querySelectorAll('.balloon');
+      balloons.forEach(balloon => {
+        balloon.style.left = Math.random() * (window.innerWidth - 60) + "px";
+      });
+    });
+  </script>
+</body>
+</html>

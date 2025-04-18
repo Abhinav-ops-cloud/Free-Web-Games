@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pokémon Catch Game</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      margin: 0;
+      font-family: 'Arial', sans-serif;
+      background: #c0f1f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    h1 {
+      font-size: 3rem;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    }
+
+    #score {
+      font-size: 1.5rem;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    #gameArea {
+      position: relative;
+      width: 80vw;
+      height: 60vh;
+      background: #e0f7fa;
+      border-radius: 15px;
+      overflow: hidden;
+      box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.3);
+    }
+
+    .pokemon {
+      position: absolute;
+      width: 80px;
+      height: 80px;
+      cursor: pointer;
+      transition: transform 0.3s ease;
+    }
+
+    .pokemon:hover {
+      transform: scale(1.1);
+    }
+
+    .startButton {
+      padding: 10px 20px;
+      font-size: 1.2rem;
+      background-color: #ff6f61;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    .startButton:hover {
+      background-color: #ff4500;
+    }
+
+    #timer {
+      font-size: 1.5rem;
+      color: #fff;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Catch the Pokémon!</h1>
+  <div id="score">Score: 0</div>
+  <div id="gameArea"></div>
+  <button class="startButton" id="startGameButton">Start Game</button>
+  <div id="timer"></div>
+
+  <script>
+    let score = 0;
+    let timer = 30;
+    let gameInterval;
+    let pokemonInterval;
+    let isGameActive = false;
+
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const gameArea = document.getElementById('gameArea');
+    const startGameButton = document.getElementById('startGameButton');
+
+    // Pokémon images (you can replace these URLs with any Pokémon images you want)
+    const pokemonImages = [
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png', // Bulbasaur
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/4.png', // Charmander
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png', // Squirtle
+      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png', // Pikachu
+    ];
+
+    // Start Game
+    startGameButton.addEventListener('click', startGame);
+
+    // Start game function
+    function startGame() {
+      score = 0;
+      timer = 30;
+      isGameActive = true;
+      startGameButton.style.display = 'none';
+      updateScore();
+      updateTimer();
+
+      gameInterval = setInterval(updateGame, 1000);
+      pokemonInterval = setInterval(generatePokemon, 1500);
+    }
+
+    // Update Score Display
+    function updateScore() {
+      scoreEl.textContent = `Score: ${score}`;
+    }
+
+    // Update Timer Display
+    function updateTimer() {
+      timerEl.textContent = `Time Left: ${timer}s`;
+    }
+
+    // Update the Game (every second)
+    function updateGame() {
+      if (timer === 0) {
+        clearInterval(gameInterval);
+        clearInterval(pokemonInterval);
+        isGameActive = false;
+        alert(`Game Over! Your score is ${score}`);
+        startGameButton.style.display = 'inline-block';
+        startGameButton.textContent = 'Restart Game';
+      } else {
+        timer--;
+        updateTimer();
+      }
+    }
+
+    // Generate Pokémon at random positions
+    function generatePokemon() {
+      if (!isGameActive) return;
+
+      const randomIndex = Math.floor(Math.random() * pokemonImages.length);
+      const pokemonImage = pokemonImages[randomIndex];
+      const pokemonElement = document.createElement('img');
+      pokemonElement.src = pokemonImage;
+      pokemonElement.classList.add('pokemon');
+
+      const randomX = Math.random() * (gameArea.clientWidth - 80);
+      const randomY = Math.random() * (gameArea.clientHeight - 80);
+      pokemonElement.style.left = `${randomX}px`;
+      pokemonElement.style.top = `${randomY}px`;
+
+      pokemonElement.addEventListener('click', catchPokemon);
+      gameArea.appendChild(pokemonElement);
+
+      setTimeout(() => {
+        gameArea.removeChild(pokemonElement);
+      }, 1500); // Remove Pokémon after 1.5s
+    }
+
+    // Catch the Pokémon (increase score)
+    function catchPokemon() {
+      if (!isGameActive) return;
+      score++;
+      updateScore();
+      this.style.transform = 'scale(0)';
+      setTimeout(() => gameArea.removeChild(this), 300);
+    }
+  </script>
+
+</body>
+</html>
